@@ -1,0 +1,1 @@
+#include "D:/OCCT/opencascade-7.4.0/src/FairCurve/FairCurve_DistributionOfJerk.hxx"

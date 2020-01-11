@@ -1,0 +1,40 @@
+<RCC>
+    <qresource prefix="/UI">
+        <file>resources/icon/antialiasing.png</file>
+        <file>resources/icon/cascade.png</file>
+        <file>resources/icon/close.png</file>
+        <file>resources/icon/cursor_rotate.png</file>
+        <file>resources/icon/cursor_zoom.png</file>
+        <file>resources/icon/document.png</file>
+        <file>resources/icon/help.png</file>
+        <file>resources/icon/lamp.png</file>
+        <file>resources/icon/new.png</file>
+        <file>resources/icon/raytracing.png</file>
+        <file>resources/icon/reflections.png</file>
+        <file>resources/icon/shadows.png</file>
+        <file>resources/icon/tile.png</file>
+        <file>resources/icon/tool_color.png</file>
+        <file>resources/icon/tool_delete.png</file>
+        <file>resources/icon/tool_material.png</file>
+        <file>resources/icon/tool_shading.png</file>
+        <file>resources/icon/tool_transparency.png</file>
+        <file>resources/icon/tool_wireframe.png</file>
+        <file>resources/icon/tool-shading.png</file>
+        <file>resources/icon/view_axo.png</file>
+        <file>resources/icon/view_back.png</file>
+        <file>resources/icon/view_bottom.png</file>
+        <file>resources/icon/view_comp_off.png</file>
+        <file>resources/icon/view_comp_on.png</file>
+        <file>resources/icon/view_fitall.png</file>
+        <file>resources/icon/view_fitarea.png</file>
+        <file>resources/icon/view_front.png</file>
+        <file>resources/icon/view_glpan.png</file>
+        <file>resources/icon/view_left.png</file>
+        <file>resources/icon/view_pan.png</file>
+        <file>resources/icon/view_reset.png</file>
+        <file>resources/icon/view_right.png</file>
+        <file>resources/icon/view_rotate.png</file>
+        <file>resources/icon/view_top.png</file>
+        <file>resources/icon/view_zoom.png</file>
+    </qresource>
+</RCC>

@@ -1,5 +1,5 @@
 TEMPLATE = subdirs
 SUBDIRS += \
-           src/SARibbonBar\
+           #src/SARibbonBar\
            src/Main
 

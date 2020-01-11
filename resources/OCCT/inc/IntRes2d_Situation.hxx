@@ -1,0 +1,1 @@
+#include "D:/OCCT/opencascade-7.4.0/src/IntRes2d/IntRes2d_Situation.hxx"

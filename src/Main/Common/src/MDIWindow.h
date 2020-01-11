@@ -1,0 +1,43 @@
+#ifndef MDIWINDOW_H
+#define MDIWINDOW_H
+
+#include <Standard_WarningsDisable.hxx>
+#include <QMainWindow>
+#include <Standard_WarningsRestore.hxx>
+
+class DocumentCommon;
+class View;
+
+class MDIWindow: public QMainWindow
+{
+    Q_OBJECT
+
+public:
+    MDIWindow( DocumentCommon* aDocument, QWidget* parent, Qt::WindowFlags wflags );
+    MDIWindow( View* aView, DocumentCommon* aDocument, QWidget* parent, Qt::WindowFlags wflags );
+    ~MDIWindow();
+
+    DocumentCommon*            getDocument();
+    void                       fitAll();
+    virtual QSize                 sizeHint() const;
+
+signals:
+    void                       selectionChanged();
+    void                       message(const QString&, int );
+    void                       sendCloseView(MDIWindow* theView);
+
+public slots:
+    void                       closeEvent(QCloseEvent* e);
+    void                       onWindowActivated ();
+    void                       dump();
+
+protected:
+    void                       createViewActions();
+    void                       createRaytraceActions();
+
+protected:
+    DocumentCommon*            myDocument;
+    View*                      myView;
+};
+
+#endif
