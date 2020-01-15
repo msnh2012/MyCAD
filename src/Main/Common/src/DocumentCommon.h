@@ -10,8 +10,11 @@
 #include <Standard_WarningsRestore.hxx>
 
 #include <AIS_InteractiveContext.hxx>
+#include <AIS_Shape.hxx>
+#include <TopTools_HSequenceOfShape.hxx>
 #include <V3d_Viewer.hxx>
 #include <QMap>
+#include "component.h"
 class ApplicationCommonWindow;
 
 class DocumentCommon : public QObject
@@ -31,6 +34,8 @@ public:
     int getmyIndex();
     int getmyNbViews();
     QList<MDIWindow*> getmyViews();
+
+    QVector<Component*> myComponents;
 protected:
     virtual MDIWindow*                   createNewMDIWindow();
 

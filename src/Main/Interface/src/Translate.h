@@ -9,7 +9,7 @@
 #include <TopTools_HSequenceOfShape.hxx>
 
 class TranslateDlg;
-
+class Component;
 class Translate: public QObject
 {
 	Q_OBJECT
@@ -20,23 +20,23 @@ public:
 	Translate( QObject* );
 	~Translate();
 
-    bool                                  importModel( const int, const Handle(AIS_InteractiveContext)& );
+    bool                                  importModel( const int, const Handle(AIS_InteractiveContext)&,QVector<Component*>&);
     bool                                  exportModel( const int, const Handle(AIS_InteractiveContext)& );
 
     //! make box test.
-    void makeBox(const Handle(AIS_InteractiveContext)& ic);
+    void makeBox(const Handle(AIS_InteractiveContext)& ic,QVector<Component*>&myComponents);
 
     //! make cone test.
-    void makeCone(const Handle(AIS_InteractiveContext)& ic);
+    void makeCone(const Handle(AIS_InteractiveContext)& ic,QVector<Component*>&myComponents);
 
     //! make sphere test.
-    void makeSphere(const Handle(AIS_InteractiveContext)& ic);
+    void makeSphere(const Handle(AIS_InteractiveContext)& ic,QVector<Component*>&myComponents);
 
     //! make cylinder test.
-    void makeCylinder(const Handle(AIS_InteractiveContext)& ic);
+    void makeCylinder(const Handle(AIS_InteractiveContext)& ic,QVector<Component*>&myComponents);
 
     //! make torus test.
-    void makeTorus(const Handle(AIS_InteractiveContext)& ic);
+    void makeTorus(const Handle(AIS_InteractiveContext)& ic,QVector<Component*>&myComponents);
 
     QString                               info() const;
 
@@ -55,6 +55,7 @@ private:
     Handle(TopTools_HSequenceOfShape)         importBREP( const QString& );
     Handle(TopTools_HSequenceOfShape)         importIGES( const QString& );
     Handle(TopTools_HSequenceOfShape)         importSTEP( const QString& );
+    Handle(TopTools_HSequenceOfShape)         importSTL( const QString& );
 
     bool exportBREP( const QString&, const Handle(TopTools_HSequenceOfShape)& );
     bool exportIGES( const QString&, const Handle(TopTools_HSequenceOfShape)& );

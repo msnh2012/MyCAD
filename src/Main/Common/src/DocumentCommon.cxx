@@ -63,6 +63,7 @@ myNbViews( 0 )
   myViewer->SetDefaultLights();
   myViewer->SetLightOn();  
   myContext = new AIS_InteractiveContext (myViewer);
+  myContext->SetDisplayMode( 1, false);
 }
 
 DocumentCommon::~DocumentCommon()
@@ -243,6 +244,18 @@ void DocumentCommon::onTransparency()
 
 void DocumentCommon::onDelete()
 {
+    for ( myContext->InitSelected(); myContext->MoreSelected(); myContext->NextSelected() )
+    {
+        Handle(AIS_InteractiveObject) obj = myContext->SelectedInteractive();
+        TopoDS_Shape shape = Handle(AIS_Shape)::DownCast(obj)->Shape();
+        for (auto it=myComponents.begin();it!=myComponents.end();++it) {
+            if((*it)->getShape() == shape)
+            {
+                myComponents.erase(it);
+                break;
+            }
+        }
+    }
     myContext->EraseSelected (Standard_False);
     myContext->ClearSelected (Standard_False);
     myContext->UpdateCurrentViewer();

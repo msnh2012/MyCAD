@@ -27,6 +27,7 @@
 #include <Interface_Static.hxx>
 //#include <Interface_TraceFile.hxx>
 
+#include <StlAPI_Reader.hxx>
 #include <StlAPI_Writer.hxx>
 #include <VrmlAPI_Writer.hxx>
 
@@ -56,6 +57,8 @@
 #include <BRepPrimAPI_MakeCylinder.hxx>
 #include <BRepPrimAPI_MakeTorus.hxx>
 
+#include "filereader.h"
+#include <QDebug>
 // ---------------------------- TranslateDlg -----------------------------------------
 
 class TranslateDlg : public QFileDialog
@@ -180,7 +183,7 @@ QString Translate::info() const
     return myInfo;
 }
 
-bool Translate::importModel( const int format, const Handle(AIS_InteractiveContext)& ic )
+bool Translate::importModel( const int format, const Handle(AIS_InteractiveContext)& ic,QVector<Component*>&myComponents)
 {
     myInfo = QString();
     QString fileName = selectFileName( format, true );
@@ -197,7 +200,19 @@ bool Translate::importModel( const int format, const Handle(AIS_InteractiveConte
     Handle(TopTools_HSequenceOfShape) shapes = importModel( format, fileName );
     QApplication::restoreOverrideCursor();
 
-    return displayShSequence(ic, shapes);
+    bool status= displayShSequence(ic, shapes);
+    if(status)
+    {
+        QFileInfo fileInfo(fileName);
+        QString name = fileInfo.fileName();
+        for ( int i = 1; i <= shapes->Length(); i++ )
+        {
+            if(shapes->Length()>1) name= name+"-"+QString::number(i);
+            Component *component =new Component(name,shapes->Value( i ));
+            myComponents.append(component);
+        }
+    }
+    return status;
 }
 
 bool Translate::displayShSequence(const Handle(AIS_InteractiveContext)& ic,
@@ -212,7 +227,7 @@ bool Translate::displayShSequence(const Handle(AIS_InteractiveContext)& ic,
   return true;
 }
 
-Handle(TopTools_HSequenceOfShape) Translate::importModel( const int format, const QString& file )
+Handle(TopTools_HSequenceOfShape) Translate::importModel( const int format, const QString& file)
 {
     Handle(TopTools_HSequenceOfShape) shapes;
     try {
@@ -226,6 +241,9 @@ Handle(TopTools_HSequenceOfShape) Translate::importModel( const int format, cons
             break;
         case FormatSTEP:
             shapes = importSTEP( file );
+            break;
+        case FormatSTL:
+            shapes = importSTL( file );
             break;
         }
     } catch ( Standard_Failure ) {
@@ -387,7 +405,7 @@ Handle(TopTools_HSequenceOfShape) Translate::importBREP( const QString& file )
 	Handle(TopTools_HSequenceOfShape) aSequence;
     TopoDS_Shape aShape;
 	BRep_Builder aBuilder;
-  TCollection_AsciiString  aFilePath = file.toUtf8().data();
+    TCollection_AsciiString  aFilePath = file.toUtf8().data();
 	Standard_Boolean result = BRepTools::Read( aShape, aFilePath.ToCString(), aBuilder );
 	if ( result )
     {
@@ -450,6 +468,15 @@ Handle(TopTools_HSequenceOfShape) Translate::importSTEP( const QString& file )
     return aSequence;
 }
 
+Handle(TopTools_HSequenceOfShape) Translate::importSTL( const QString& file )
+{
+    Handle(TopTools_HSequenceOfShape) aSequence = new TopTools_HSequenceOfShape;
+    StlAPI_Reader reader;
+    TopoDS_Shape aShape;
+    Standard_Boolean status = reader.Read(aShape,file.toUtf8().data());
+    if(status)aSequence->Append( aShape );
+    return aSequence;
+}
 // ----------------------------- Export functionality -----------------------------
 
 bool Translate::exportBREP( const QString& file, const Handle(TopTools_HSequenceOfShape)& shapes )
@@ -611,18 +638,20 @@ bool Translate::checkFacetedBrep( const Handle(TopTools_HSequenceOfShape)& shape
 	return !err;
 }
 
-void Translate::makeBox(const Handle(AIS_InteractiveContext)& ic)
+void Translate::makeBox(const Handle(AIS_InteractiveContext)& ic,QVector<Component*>&myComponents)
 {
     TopoDS_Shape aTopoBox = BRepPrimAPI_MakeBox(3.0, 4.0, 5.0).Shape();
     Handle(AIS_Shape) anAisBox = new AIS_Shape(aTopoBox);
 
     anAisBox->SetColor(Quantity_NOC_AZURE);
 
+    Component *component =new Component("aTopoBox",aTopoBox);
+    myComponents.append(component);
     ic->Display(anAisBox, Standard_True );
     ic->UpdateCurrentViewer();
 }
 
-void Translate::makeCone(const Handle(AIS_InteractiveContext)& ic)
+void Translate::makeCone(const Handle(AIS_InteractiveContext)& ic,QVector<Component*>&myComponents)
 {
     gp_Ax2 anAxis;
     anAxis.SetLocation(gp_Pnt(0.0, 10.0, 0.0));
@@ -631,18 +660,20 @@ void Translate::makeCone(const Handle(AIS_InteractiveContext)& ic)
     Handle(AIS_Shape) anAisReducer = new AIS_Shape(aTopoReducer);
 
     anAisReducer->SetColor(Quantity_NOC_BISQUE);
-
+    Component *component =new Component("aTopoReducer",aTopoReducer);
+    myComponents.append(component);
     anAxis.SetLocation(gp_Pnt(8.0, 10.0, 0.0));
     TopoDS_Shape aTopoCone = BRepPrimAPI_MakeCone(anAxis, 3.0, 0.0, 5.0).Shape();
     Handle(AIS_Shape) anAisCone = new AIS_Shape(aTopoCone);
 
     anAisCone->SetColor(Quantity_NOC_CHOCOLATE);
-
+    Component *component2 =new Component("aTopoCone",aTopoCone);
+    myComponents.append(component2);
     ic->Display(anAisReducer, Standard_True);
     ic->Display(anAisCone, Standard_True);
 }
 
-void Translate::makeSphere(const Handle(AIS_InteractiveContext)& ic)
+void Translate::makeSphere(const Handle(AIS_InteractiveContext)& ic,QVector<Component*>&myComponents)
 {
     gp_Ax2 anAxis;
     anAxis.SetLocation(gp_Pnt(0.0, 20.0, 0.0));
@@ -651,11 +682,12 @@ void Translate::makeSphere(const Handle(AIS_InteractiveContext)& ic)
     Handle(AIS_Shape) anAisSphere = new AIS_Shape(aTopoSphere);
 
     anAisSphere->SetColor(Quantity_NOC_BLUE1);
-
+    Component *component =new Component("aTopoSphere",aTopoSphere);
+    myComponents.append(component);
     ic->Display(anAisSphere, Standard_True);
 }
 
-void Translate::makeCylinder(const Handle(AIS_InteractiveContext)& ic)
+void Translate::makeCylinder(const Handle(AIS_InteractiveContext)& ic,QVector<Component*>&myComponents)
 {
     gp_Ax2 anAxis;
     anAxis.SetLocation(gp_Pnt(0.0, 30.0, 0.0));
@@ -664,18 +696,20 @@ void Translate::makeCylinder(const Handle(AIS_InteractiveContext)& ic)
     Handle(AIS_Shape) anAisCylinder = new AIS_Shape(aTopoCylinder);
 
     anAisCylinder->SetColor(Quantity_NOC_RED);
-
+    Component *component =new Component("aTopoCylinder",aTopoCylinder);
+    myComponents.append(component);
     anAxis.SetLocation(gp_Pnt(8.0, 30.0, 0.0));
     TopoDS_Shape aTopoPie = BRepPrimAPI_MakeCylinder(anAxis, 3.0, 5.0, M_PI_2 * 3.0).Shape();
     Handle(AIS_Shape) anAisPie = new AIS_Shape(aTopoPie);
 
     anAisPie->SetColor(Quantity_NOC_TAN);
-
+    Component *component2 =new Component("aTopoPie",aTopoPie);
+    myComponents.append(component2);
     ic->Display(anAisCylinder, Standard_True);
     ic->Display(anAisPie, Standard_True);
 }
 
-void Translate::makeTorus(const Handle(AIS_InteractiveContext)& ic)
+void Translate::makeTorus(const Handle(AIS_InteractiveContext)& ic,QVector<Component*>&myComponents)
 {
     gp_Ax2 anAxis;
     anAxis.SetLocation(gp_Pnt(0.0, 40.0, 0.0));
@@ -684,13 +718,16 @@ void Translate::makeTorus(const Handle(AIS_InteractiveContext)& ic)
     Handle(AIS_Shape) anAisTorus = new AIS_Shape(aTopoTorus);
 
     anAisTorus->SetColor(Quantity_NOC_YELLOW);
+    Component *component =new Component("aTopoTorus",aTopoTorus);
+    myComponents.append(component);
 
     anAxis.SetLocation(gp_Pnt(8.0, 40.0, 0.0));
     TopoDS_Shape aTopoElbow = BRepPrimAPI_MakeTorus(anAxis, 3.0, 1.0, M_PI_2).Shape();
     Handle(AIS_Shape) anAisElbow = new AIS_Shape(aTopoElbow);
 
     anAisElbow->SetColor(Quantity_NOC_THISTLE);
-
+    Component *component2 =new Component("aTopoElbow",aTopoElbow);
+    myComponents.append(component2);
     ic->Display(anAisTorus, Standard_True);
     ic->Display(anAisElbow, Standard_True);
 }

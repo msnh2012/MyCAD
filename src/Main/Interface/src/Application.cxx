@@ -68,6 +68,13 @@ void ApplicationWindow::createTranslatePopups()
 	myCasCadeTranslateActions.insert( FileExportSTEPId, a );
 	myExportPopup->addAction( a );
 
+    a = new QAction("STL ...", this );
+    a->setStatusTip("Import STL");
+    connect( a, SIGNAL( triggered() ), this, SLOT( onImport() ) );
+    myCasCadeTranslateActions.insert( FileImportSTLId, a );
+    myImportPopup->addAction( a );
+
+
 	a = new QAction( QObject::tr("MNU_EXPORT_STL"), this );
 	a->setStatusTip( QObject::tr("TBR_EXPORT_STL") );
 	connect( a, SIGNAL( triggered() ), this, SLOT( onExport() ) );
@@ -137,7 +144,7 @@ void ApplicationWindow::onExport()
 int ApplicationWindow::translationFormat( const QAction* a )
 {
     int type = -1;
-    for ( int i = FileImportBREPId; i <= FileExportVRMLId; i++ )
+    for ( int i = FileImportBREPId; i <= FileImportSTLId; i++ )
     {
         if ( myCasCadeTranslateActions.at( i ) == a )
         {
@@ -159,6 +166,7 @@ int ApplicationWindow::translationFormat( const QAction* a )
     case FileExportSTEPId:
         type =  Translate::FormatSTEP;
         break;
+    case FileImportSTLId:
     case FileExportSTLId:
         type = Translate::FormatSTL;
         break;
@@ -176,7 +184,7 @@ bool ApplicationWindow::translate( const int format, const bool import )
     Handle(AIS_InteractiveContext) context = doc->getContext();
     bool status;
     if ( import )
-        status = anTrans->importModel( format, context );
+        status = anTrans->importModel( format, context,doc->myComponents);
     else
         status = anTrans->exportModel( format, context );
 
@@ -187,7 +195,7 @@ bool ApplicationWindow::translate( const int format, const bool import )
             msg += QString( "\n" ) + anTrans->info();
         QMessageBox::critical( this, QObject::tr( "TIT_ERROR" ), msg, QObject::tr( "BTN_OK" ), QString::null, QString::null, 0, 0 );
     }
-    
+
     return status;
 }
 
@@ -278,7 +286,9 @@ void ApplicationWindow::onmakeBox()
     static Translate* anTrans = createTranslator();
     DocumentCommon* doc = qobject_cast<MDIWindow*>( getWorkspace()->activeSubWindow()->widget() )->getDocument();
     Handle(AIS_InteractiveContext) context = doc->getContext();
-    anTrans->makeBox(context);
+    anTrans->makeBox(context,doc->myComponents);
+
+    getApplication()->updateTreeWidgetItem();
 }
 
 void ApplicationWindow::onmakeCone()
@@ -287,7 +297,8 @@ void ApplicationWindow::onmakeCone()
     static Translate* anTrans = createTranslator();
     DocumentCommon* doc = qobject_cast<MDIWindow*>( getWorkspace()->activeSubWindow()->widget() )->getDocument();
     Handle(AIS_InteractiveContext) context = doc->getContext();
-    anTrans->makeCone(context);
+    anTrans->makeCone(context,doc->myComponents);
+    getApplication()->updateTreeWidgetItem();
 }
 
 void ApplicationWindow::onmakeSphere()
@@ -296,7 +307,8 @@ void ApplicationWindow::onmakeSphere()
     static Translate* anTrans = createTranslator();
     DocumentCommon* doc = qobject_cast<MDIWindow*>( getWorkspace()->activeSubWindow()->widget() )->getDocument();
     Handle(AIS_InteractiveContext) context = doc->getContext();
-    anTrans->makeSphere(context);
+    anTrans->makeSphere(context,doc->myComponents);
+    getApplication()->updateTreeWidgetItem();
 }
 
 void ApplicationWindow::onmakeCylinder()
@@ -305,7 +317,8 @@ void ApplicationWindow::onmakeCylinder()
     static Translate* anTrans = createTranslator();
     DocumentCommon* doc = qobject_cast<MDIWindow*>( getWorkspace()->activeSubWindow()->widget() )->getDocument();
     Handle(AIS_InteractiveContext) context = doc->getContext();
-    anTrans->makeCylinder(context);
+    anTrans->makeCylinder(context,doc->myComponents);
+    getApplication()->updateTreeWidgetItem();
 }
 
 void ApplicationWindow::onmakeTorus()
@@ -314,5 +327,6 @@ void ApplicationWindow::onmakeTorus()
     static Translate* anTrans = createTranslator();
     DocumentCommon* doc = qobject_cast<MDIWindow*>( getWorkspace()->activeSubWindow()->widget() )->getDocument();
     Handle(AIS_InteractiveContext) context = doc->getContext();
-    anTrans->makeTorus(context);
+    anTrans->makeTorus(context,doc->myComponents);
+    getApplication()->updateTreeWidgetItem();
 }

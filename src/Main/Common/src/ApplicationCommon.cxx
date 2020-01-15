@@ -23,6 +23,9 @@
 #include <QDebug>
 #include <QSplitter>
 #include <QTabWidget>
+#include <QTimer>
+#include <QDateTime>
+#include "Slice/slice.h"
 static ApplicationCommonWindow* stApp = 0;
 static QMdiArea* stWs = 0;
 
@@ -65,6 +68,7 @@ ApplicationCommonWindow::ApplicationCommonWindow()
     connect(treewidget,SIGNAL(itemDoubleClicked(QTreeWidgetItem*,int)),this,SLOT(onshowSelectedItem(QTreeWidgetItem*,int)));
 
     statusBar()->showMessage( QObject::tr("INF_READY"), 5000 );
+    initStatusBar();
     resize( 1000, 700 );
 }
 
@@ -84,7 +88,7 @@ void ApplicationCommonWindow::createStandardOperations()
 
     QAction * fileNewAction, * fileCloseAction, * filePrefUseVBOAction,
             * fileQuitAction, * viewToolAction, * viewStatusAction, * helpAboutAction,
-            *fileSaveAction;
+            *fileSaveAction,*FilePreferencesAction;
 
     fileNewAction = new QAction( newIcon, QObject::tr("MNU_NEW"), this );
     fileNewAction->setToolTip( QObject::tr("TBR_NEW") );
@@ -99,7 +103,6 @@ void ApplicationCommonWindow::createStandardOperations()
     fileSaveAction->setShortcut( QObject::tr("CTRL+S") );
     connect( fileSaveAction, SIGNAL( triggered() ) , this, SLOT( onSave() ) );
     myStdActions.insert( FileSaveId, fileSaveAction );
-
 
     fileCloseAction = new QAction( closeIcon, QObject::tr("MNU_CLOSE"), this );
     fileCloseAction->setToolTip( QObject::tr("TBR_CLOSE") );
@@ -174,12 +177,17 @@ void ApplicationCommonWindow::createStandardOperations()
     help = menuBar()->addMenu( QObject::tr("MNU_HELP") );
     help->addAction( helpAboutAction );
 
+    myStdActions.insert( FilePreferencesId, FilePreferencesAction );
 
     // populate a tool bar with some actions
     myStdToolBar = addToolBar( tr( "File Operations" ) );
     myStdToolBar->addAction( fileNewAction );
     myStdToolBar->addAction( fileSaveAction );
-    myStdToolBar->addAction( helpAboutAction );
+    QAction *sliceAction = new QAction(QPixmap(dir+"slice.png"),"slice");
+    connect( sliceAction, SIGNAL( triggered() ) , this, SLOT( onSlice() ) );
+    myStdActions.insert( FileSliceId, sliceAction );
+    myStdToolBar->addAction( sliceAction );
+    sliceAction->setVisible(false);
 
     myStdActions.at(FileCloseId)->setEnabled(myDocuments.count() > 0);
 
@@ -307,15 +315,16 @@ void ApplicationCommonWindow::updateTreeWidgetItem()
         group->setData(0,Qt::UserRole,i);
         group->setFlags(Qt::ItemIsEnabled|Qt::ItemIsSelectable);
 
-//        QList<MDIWindow*> myViews = myDocuments.at(i)->getmyViews();
-//        for(int j=0;j<myViews.count();j++)
-//        {
-//            QTreeWidgetItem *item=new QTreeWidgetItem(group);
-//            item->setText(0, myViews.at(j)->windowTitle());
-//            item->setData(0,Qt::UserRole,j);
-//            item->setFlags(Qt::ItemIsUserCheckable|Qt::ItemIsEnabled|Qt::ItemIsSelectable);
-//            item->setCheckState(0,Qt::Unchecked);
-//        }
+        QVector<Component*> myComponents = myDocuments.at(i)->myComponents;
+
+        for(int j=0;j<myComponents.count();j++)
+        {
+            QTreeWidgetItem *item=new QTreeWidgetItem(group);
+            item->setText(0, myComponents.at(j)->getName());
+            item->setData(0,Qt::UserRole,j);
+            item->setFlags(Qt::ItemIsUserCheckable|Qt::ItemIsEnabled|Qt::ItemIsSelectable);
+            item->setCheckState(0,Qt::Unchecked);
+        }
     }
     treewidget->expandAll();
 }
@@ -449,6 +458,7 @@ void ApplicationCommonWindow::updateFileActions()
 
         menuBar()->insertMenu( windowAction, myPrimitivePopup );
         menuBar()->insertMenu( windowAction, myWindowPopup );
+        myStdActions[FileSliceId]->setVisible(true);
     }
     else
     {
@@ -456,6 +466,7 @@ void ApplicationCommonWindow::updateFileActions()
         myCasCadeBar->hide();
         menuBar()->removeAction( myWindowPopup->menuAction() );
         menuBar()->removeAction( myPrimitivePopup->menuAction() );
+        myStdActions[FileSliceId]->setVisible(false);
     }
 }
 
@@ -602,6 +613,7 @@ void ApplicationCommonWindow::onToolAction()
 
 void ApplicationCommonWindow::onSelectionChanged()
 {
+    updateTreeWidgetItem();
     QMdiArea* ws = ApplicationCommonWindow::getWorkspace();
     DocumentCommon* doc;
 
@@ -610,6 +622,14 @@ void ApplicationCommonWindow::onSelectionChanged()
 
     doc = ( qobject_cast<MDIWindow*>( ws->activeSubWindow()->widget() ) )->getDocument();
     Handle(AIS_InteractiveContext) context = doc->getContext();
+
+    //遍历treeWidget
+    QTreeWidgetItemIterator it(treewidget);
+    while (*it) {
+        (*it)->setSelected(false);
+        (*it)->setCheckState(0,Qt::Unchecked);
+        ++it;
+    }
 
     bool OneOrMoreInShading = false;
     bool OneOrMoreInWireframe = false;
@@ -622,6 +642,20 @@ void ApplicationCommonWindow::onSelectionChanged()
                 OneOrMoreInShading = true;
             if ( context->IsDisplayed( context->SelectedInteractive(), 0 ) )
                 OneOrMoreInWireframe = true;
+
+            Handle(AIS_InteractiveObject) obj = context->SelectedInteractive();
+            TopoDS_Shape shape = Handle(AIS_Shape)::DownCast(obj)->Shape();
+            //遍历treeWidget
+            QTreeWidgetItemIterator it(treewidget);
+            while (*it) {
+                int j = (*it)->data(0,Qt::UserRole).toInt();
+                if(doc->myComponents[j]->getShape() == shape)
+                {
+                    (*it)->setSelected(true);
+                    (*it)->setCheckState(0,Qt::Checked);
+                }
+                ++it;
+            }
         }
         myToolActions.at( ToolWireframeId )->setEnabled( OneOrMoreInShading );
         myToolActions.at( ToolShadingId )->setEnabled( OneOrMoreInWireframe );
@@ -725,4 +759,57 @@ void ApplicationCommonWindow::updatemysubWindows(int index)
             mysubWindows[i][j]--;
         }
     }
+}
+
+void ApplicationCommonWindow::initStatusBar()
+{
+    currentTimeLabel = new QLabel;
+
+    //    statusLabel->setFrameShape(QFrame::WinPanel); //设置标签形状
+//    statusLabel->setFrameShadow(QFrame::Sunken); //设置标签阴影
+
+    QTimer *timer = new QTimer(this);
+    timer->start(500); //每隔500ms发送timeout的信号
+    connect(timer, SIGNAL(timeout()),this,SLOT(timeUpdate()));
+    statusBar()->addPermanentWidget(currentTimeLabel); //现实永久信息
+}
+
+void ApplicationCommonWindow::timeUpdate()
+{
+    QDateTime current_time = QDateTime::currentDateTime();
+    QString timestr = current_time.toString( "yyyy/MM/dd hh:mm:ss"); //设置显示的格式
+    currentTimeLabel->setText(timestr); //设置label的文本内容为时间
+}
+
+void ApplicationCommonWindow::onSlice(){
+    QMdiArea* ws = ApplicationCommonWindow::getWorkspace();
+    DocumentCommon* doc;
+
+    if(!qobject_cast<MDIWindow*>( ws->activeSubWindow()->widget() ) )
+        return;
+
+    doc = ( qobject_cast<MDIWindow*>( ws->activeSubWindow()->widget() ) )->getDocument();
+
+    Handle(AIS_InteractiveContext) context = doc->getContext();
+    int numSel = context->NbSelected();
+    if ( numSel )
+    {
+        Handle(TopTools_HSequenceOfShape) aSequence=new TopTools_HSequenceOfShape();
+
+        for ( context->InitSelected(); context->MoreSelected(); context->NextSelected() )
+        {
+            Handle(AIS_InteractiveObject) obj = context->SelectedInteractive();
+            TopoDS_Shape shape = Handle(AIS_Shape)::DownCast(obj)->Shape();
+            aSequence->Append( shape );
+        }
+
+        Slice *slice = new Slice(this);
+        slice->setData(aSequence,doc);
+        slice->show();
+    }
+    else {
+        QMessageBox::warning(this, "warning", "please select a model", "OK",
+                                  QString::null, QString::null, 0, 0 );
+    }
+     BEdt->append("slice is clicked.");
 }

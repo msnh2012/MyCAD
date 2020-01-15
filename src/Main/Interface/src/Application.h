@@ -12,7 +12,7 @@ public:
   
   enum { FileImportBREPId=0, FileExportBREPId=1, FileImportIGESId=2,
          FileExportIGESId=3, FileImportSTEPId=4, FileExportSTEPId=5,
-         FileExportSTLId=6,  FileExportVRMLId=7, FileUserId };
+         FileExportSTLId=6,  FileExportVRMLId=7, FileImportSTLId=8};
 	
   ApplicationWindow();
   ~ApplicationWindow();

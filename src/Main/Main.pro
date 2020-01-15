@@ -11,7 +11,8 @@ CONFIG += c++11
 
 TARGET = MyCAD
 TEMPLATE = app
-
+QMAKE_CXXFLAGS += -fopenmp
+LIBS += -lgomp -lpthread
 # The following define makes your compiler emit warnings if you use
 # any Qt feature that has been marked deprecated (the exact warnings
 # depend on your compiler). Please consult the documentation of the
@@ -33,8 +34,9 @@ SOURCES += main.cpp \
     Common/src/View.cxx \
     Interface/src/Application.cxx \
     Interface/src/Translate.cxx \
-            filereader.cpp \
-		project.cpp
+    Slice/slice.cpp \
+    component.cpp \
+            filereader.cpp
 
 HEADERS += filereader.h \
     Common/src/ApplicationCommon.h \
@@ -46,17 +48,16 @@ HEADERS += filereader.h \
     Common/src/View.h \
     Interface/src/Application.h \
     Interface/src/Translate.h \
-    project.h
+    Slice/slice.h \
+    component.h
 
 TRANSLATIONS += PWD/../../resources/trans/MyCAD_zh_CN.ts
 
-
 CONFIG(debug, debug|release){
-    DESTDIR = $$PWD/../../../build-Debug
+    DESTDIR = $$PWD/../../../build-MyCAD-Debug
 }else {
-    DESTDIR = $$PWD/../../../build-Release
+    DESTDIR = $$PWD/../../../build-MyCAD-Release
 }
-
 #include($$PWD/../../MyCAD.pri)
 INCLUDEPATH += $$PWD/../../resources/OCCT/inc
 DEPENDPATH += $$PWD/../../resources/OCCT/inc
@@ -125,8 +126,9 @@ LIBS += -L$$PWD/../../resources/OCCT/lib/ -llibTKXSDRAW.dll
 INCLUDEPATH += $$PWD/Interface/src
 INCLUDEPATH += $$PWD/Common/src
 
-RESOURCES += \
-    ../../icon.qrc
+FORMS += \
+    Slice/slice.ui
+
 
 
 

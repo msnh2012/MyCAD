@@ -13,13 +13,15 @@
 #include <QTreeWidget>
 #include <Standard_WarningsRestore.hxx>
 #include <QTextEdit>
+#include <QLabel>
 
 class ApplicationCommonWindow: public QMainWindow
 {
     Q_OBJECT
 
 public:
-    enum { FileNewId, FilePrefUseVBOId, FileCloseId, FilePreferencesId, FileQuitId, ViewToolId, ViewStatusId, HelpAboutId,FileSaveId};
+    enum { FileNewId, FilePrefUseVBOId, FileCloseId, FilePreferencesId, FileQuitId, ViewToolId, ViewStatusId, HelpAboutId,
+           FileSaveId,FileSliceId};
     enum { ToolWireframeId, ToolShadingId, ToolColorId, ToolMaterialId, ToolTransparencyId, ToolDeleteId };
 
     ApplicationCommonWindow();
@@ -34,10 +36,11 @@ public:
     QList<QAction*>*                 getMaterialActions();
     void    updateTreeWidgetItem();
     void    updatemysubWindows(int i);
+    QTextEdit *BEdt;
 protected:
     virtual DocumentCommon*          createNewDocument();
     int&                             getNbDocument();
-    QTextEdit *BEdt;
+
 public slots:
 
     DocumentCommon*                 onNewDoc();
@@ -55,8 +58,9 @@ public slots:
     void                            windowsMenuActivated( bool checked/*int id*/ );
     void                            onSetMaterial( int theMaterial );
     void onSave();
+    void onSlice();
     void onshowSelectedItem(QTreeWidgetItem*,int);
-
+    void timeUpdate();
 protected:
     virtual void                    resizeEvent( QResizeEvent* );
     bool                            isDocument();
@@ -70,7 +74,7 @@ private:
     void                            createCasCadeOperations();
     void                            createWindowPopup();
     void                            createPrimitivePopup();
-
+    void initStatusBar();
 private:
     int                             myNbDocuments;
     bool                            myIsDocuments;
@@ -88,6 +92,7 @@ private:
     QAction*                        myFileSeparator;
     QTreeWidget *treewidget;
     QVector<QVector<int>> mysubWindows;
+    QLabel *currentTimeLabel;
 protected:
     QList<DocumentCommon*>          myDocuments;
 };
