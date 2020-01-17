@@ -9,12 +9,15 @@ Component::Component(QString _name,TopoDS_Shape _shape)
 {
     name = _name;
     myShape = _shape;
-    mySlice = new TopTools_HSequenceOfShape();
-
     setBox();
 }
 
-Handle(TopTools_HSequenceOfShape) Component::getSlice()
+void Component::setSlice(QVector<SliceData> slice)
+{
+    mySlice = slice;
+}
+
+QVector<SliceData> &Component::getSlice()
 {
     return mySlice;
 }

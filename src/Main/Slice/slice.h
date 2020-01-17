@@ -4,6 +4,7 @@
 #include <QDialog>
 #include "DocumentCommon.h"
 #include <QVector3D>
+#include <TopTools_ListOfShape.hxx>
 namespace Ui {
 class Slice;
 }
@@ -26,8 +27,16 @@ private slots:
 
     void on_comboBox_currentIndexChanged(int index);
 
+    void on_exportBtn_clicked();
+
+    void updateProgressBar(int value);
+signals:
+    void sglStep(int );
 private:
     void getPlaneSet(const Bnd_Box &box);
+    QVector<QList<TopoDS_Edge>> splitEdges(TopTools_ListOfShape &);
+    void getEndpointOfEdge(TopoDS_Edge&,gp_Pnt&,gp_Pnt&);
+    QString gp_PntToQString(gp_Pnt&);
 private:
     Ui::Slice *ui;
     Handle(TopTools_HSequenceOfShape) aSequence;
