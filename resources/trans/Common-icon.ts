@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE TS><TS version="1.1">
+<!DOCTYPE TS>
+<TS version="2.1" language="zh_CN">
 <context>
     <name>QObject</name>
     <message>
@@ -12,7 +13,7 @@
     </message>
     <message>
         <source>ICON_VIEW_AXO</source>
-        <translation>view_axo.png</translation>
+        <translation type="unfinished">view_pan.png</translation>
     </message>
     <message>
         <source>ICON_CURSOR_ZOOM</source>
@@ -42,7 +43,7 @@
         <source>ICON_CLOSE</source>
         <translation>close.png</translation>
     </message>
-	<message>
+    <message>
         <source>ICON_SAVE</source>
         <translation>save.png</translation>
     </message>

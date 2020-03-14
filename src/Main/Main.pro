@@ -36,7 +36,7 @@ SOURCES += main.cpp \
     Interface/src/Translate.cxx \
     Slice/slice.cpp \
     component.cpp \
-            filereader.cpp
+    filereader.cpp
 
 HEADERS += filereader.h \
     Common/src/ApplicationCommon.h \
@@ -50,8 +50,6 @@ HEADERS += filereader.h \
     Interface/src/Translate.h \
     Slice/slice.h \
     component.h
-
-TRANSLATIONS += PWD/../../resources/trans/MyCAD_zh_CN.ts
 
 CONFIG(debug, debug|release){
     DESTDIR = $$PWD/../../../build-MyCAD-Debug
@@ -128,7 +126,3 @@ INCLUDEPATH += $$PWD/Common/src
 
 FORMS += \
     Slice/slice.ui
-
-
-
-

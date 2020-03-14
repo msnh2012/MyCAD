@@ -56,7 +56,7 @@
 #include <BRepPrimAPI_MakeSphere.hxx>
 #include <BRepPrimAPI_MakeCylinder.hxx>
 #include <BRepPrimAPI_MakeTorus.hxx>
-
+#include <BRepAlgoAPI_Cut.hxx>
 #include "filereader.h"
 #include <QDebug>
 // ---------------------------- TranslateDlg -----------------------------------------
@@ -640,14 +640,21 @@ bool Translate::checkFacetedBrep( const Handle(TopTools_HSequenceOfShape)& shape
 
 void Translate::makeBox(const Handle(AIS_InteractiveContext)& ic,QVector<Component*>&myComponents)
 {
-    TopoDS_Shape aTopoBox = BRepPrimAPI_MakeBox(3.0, 4.0, 5.0).Shape();
-    Handle(AIS_Shape) anAisBox = new AIS_Shape(aTopoBox);
+    TopoDS_Shape aTopoBox = BRepPrimAPI_MakeBox(gp_Pnt(0, 0, 0.0),20.0f, 10.0f, 5.0f).Shape();
 
-    anAisBox->SetColor(Quantity_NOC_AZURE);
+    TopoDS_Shape deleteBox = BRepPrimAPI_MakeBox(gp_Pnt(2.5, 2.5, 0.0),5.0, 5.0, 5.0).Shape();
 
-    Component *component =new Component("aTopoBox",aTopoBox);
+    gp_Ax2 anAxis;
+    anAxis.SetLocation(gp_Pnt(15.0, 5.0, 0.0));
+    TopoDS_Shape aTopoCylinder = BRepPrimAPI_MakeCylinder(anAxis, 2.5, 10.0).Shape();
+
+    TopoDS_Shape part = BRepAlgoAPI_Cut(aTopoBox,deleteBox).Shape();
+    part = BRepAlgoAPI_Cut(part,aTopoCylinder).Shape();
+    Handle(AIS_Shape) myPart = new AIS_Shape(part);
+    myPart->SetColor(Quantity_NOC_AZURE);
+    ic->Display(myPart, Standard_True );
+    Component *component =new Component("myPart",part);
     myComponents.append(component);
-    ic->Display(anAisBox, Standard_True );
     ic->UpdateCurrentViewer();
 }
 

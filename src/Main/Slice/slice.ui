@@ -55,7 +55,7 @@
      <item>
       <widget class="QCheckBox" name="isParallel">
        <property name="text">
-        <string>use OpenMP</string>
+        <string>OpenMP</string>
        </property>
       </widget>
      </item>
